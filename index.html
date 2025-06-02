@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meheraj - Advanced Iframe Player</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        /* CSS Variables for Theming (Light/Dark Mode) */
+        :root {
+            --bg-color-light: #e0eafc;
+            --bg-color-dark: #0a192f;
+
+            --glass-bg-light: rgba(255, 255, 255, 0.65);
+            /* Slightly more opaque */
+            --glass-border-light: rgba(255, 255, 255, 0.25);
+            --glass-shadow-light: rgba(0, 0, 0, 0.1);
+
+            --glass-bg-dark: rgba(40, 58, 94, 0.7);
+            --glass-border-dark: rgba(255, 255, 255, 0.15);
+            --glass-shadow-dark: rgba(0, 0, 0, 0.3);
+
+            --text-color-light: #1c3d5a;
+            --text-secondary-light: #5a7a9a;
+
+            --text-color-dark: #e6f1ff;
+            --text-secondary-dark: #a8b2d1;
+
+            --primary-color: #00aaff;
+            --primary-hover-color: #0088cc;
+            --favorite-color: #ffc107;
+            --danger-color: #e74c3c;
+
+            --header-height: 65px;
+            --sidebar-width: 320px;
+            --blur-intensity: 10px;
+            /* Increased blur */
+
+            --current-bg-color: var(--bg-color-light);
+            --current-glass-bg: var(--glass-bg-light);
+            --current-glass-border: var(--glass-border-light);
+            --current-glass-shadow: var(--glass-shadow-light);
+            --current-text-color: var(--text-color-light);
+            --current-text-secondary: var(--text-secondary-light);
+        }
+
+        body.dark-mode {
+            --current-bg-color: var(--bg-color-dark);
+            --current-glass-bg: var(--glass-bg-dark);
+            --current-glass-border: var(--glass-border-dark);
+            --current-glass-shadow: var(--glass-shadow-dark);
+            --current-text-color: var(--text-color-dark);
+            --current-text-secondary: var(--text-secondary-dark);
+        }
+
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(-45deg, var(--current-bg-color), #c7d9f8, #a3bded, #7f9fe1);
+            background-size: 400% 400%;
+            animation: gradientAnimation 25s ease infinite;
+            color: var(--current-text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            transition: background 0.5s ease, color 0.3s;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(-45deg, var(--current-bg-color), #1f3a5f, #142b47, #0a192f);
+            background-size: 400% 400%;
+            animation: gradientAnimation 30s ease infinite;
+        }
+
+        .glass-effect {
+            background-color: var(--current-glass-bg);
+            backdrop-filter: blur(var(--blur-intensity));
+            -webkit-backdrop-filter: blur(var(--blur-intensity));
+            border: 1px solid var(--current-glass-border);
+            box-shadow: 0 5px 25px var(--current-glass-shadow);
+            /* Softer shadow */
+            border-radius: 16px;
+            /* More rounded */
+            transition: background-color 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 10px 20px;
+            flex-shrink: 0;
+            gap: 15px;
+            min-height: var(--header-height);
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-right: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+            color: var(--current-text-color);
+            text-shadow: 0 1px 3px var(--current-glass-shadow);
+            /* Enhanced shadow */
+        }
+
+        .header h1 .app-icon {
+            /* Specific class for app icon */
+            color: var(--primary-color);
+            font-size: 30px;
+        }
+
+        .header-button .material-icons,
+        .url-input-container button .material-icons {
+            font-size: 20px;
+        }
+
+        .url-input-container {
+            display: flex;
+            flex-grow: 1;
+            min-width: 280px;
+        }
+
+        .url-input-container input {
+            width: 100%;
+            padding: 10px 15px;
+            font-size: 14px;
+            border: 1px solid var(--current-glass-border);
+            border-right: none;
+            border-radius: 10px 0 0 10px;
+            /* More rounded */
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--current-text-color);
+            outline: none;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+
+        body.dark-mode .url-input-container input {
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .url-input-container input:focus {
+            background-color: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 0 0 2.5px var(--primary-color);
+            /* Slightly thicker focus */
+        }
+
+        body.dark-mode .url-input-container input:focus {
+            background-color: rgba(0, 0, 0, 0.25);
+        }
+
+        .url-input-container button,
+        .header-button {
+            padding: 10px 15px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--current-glass-border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease-out;
+            /* Smooth all transitions */
+            white-space: nowrap;
+            color: var(--current-text-color);
+        }
+
+        .header-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .header-button:disabled:hover {
+            background-color: var(--current-glass-bg);
+            color: var(--current-text-secondary);
+            border-color: var(--current-glass-border);
+        }
+
+        .url-input-container button {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .url-input-container button:hover {
+            background-color: var(--primary-hover-color);
+            border-color: var(--primary-hover-color);
+            box-shadow: 0 3px 12px rgba(0, 170, 255, 0.5);
+            /* Enhanced hover shadow */
+            transform: translateY(-2px) scale(1.02);
+            /* More pronounced hover */
+        }
+
+        .url-input-container button:active {
+            transform: translateY(0px) scale(1);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .header-button {
+            background-color: var(--current-glass-bg);
+            border-radius: 10px;
+        }
+
+        .header-button:not(:disabled):hover {
+            background-color: rgba(255, 255, 255, 0.35);
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 2px 8px var(--current-glass-shadow);
+        }
+
+        body.dark-mode .header-button:not(:disabled):hover {
+            background-color: rgba(0, 0, 0, 0.35);
+        }
+
+        .header-button:not(:disabled):active {
+            transform: translateY(0px) scale(1);
+        }
+
+        .main-content {
+            display: flex;
+            flex-grow: 1;
+            overflow: hidden;
+            height: calc(100vh - var(--header-height));
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            /* Increased padding */
+            transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
+            opacity: 0;
+            transform: translateX(-30px);
+            /* Slightly more pronounced entry */
+            animation: slideInFromLeft 0.7s 0.2s forwards cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .sidebar-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            flex-shrink: 0;
+            border-bottom: 1px solid var(--current-glass-border);
+        }
+
+        .sidebar-tabs button {
+            flex: 1;
+            padding: 14px 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--current-text-secondary);
+            border-bottom: 3px solid transparent;
+            transition: color 0.3s, border-bottom-color 0.3s;
+            position: relative;
+        }
+
+        .sidebar-tabs button::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background-color: var(--primary-color);
+            transition: width 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            /* Smoother underline */
+        }
+
+        .sidebar-tabs button.active {
+            color: var(--primary-color);
+        }
+
+        .sidebar-tabs button.active::after {
+            width: 70%;
+            /* Underline doesn't span full width */
+        }
+
+        .sidebar-tabs button:not(.active):hover {
+            color: var(--current-text-color);
+        }
+
+        .sidebar-tabs button:not(.active):hover::after {
+            width: 50%;
+        }
+
+        .sidebar-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background-color: var(--current-glass-border);
+            border-radius: 8px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background-color: var(--primary-color);
+        }
+
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: 14px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+            /* Smooth all transitions */
+            background-color: rgba(255, 255, 255, 0.08);
+            border: 1px solid transparent;
+        }
+
+        body.dark-mode .list-item {
+            background-color: rgba(0, 0, 0, 0.08);
+        }
+
+        .list-item:hover {
+            background-color: var(--current-glass-bg);
+            border-color: var(--current-glass-border);
+            transform: translateX(8px) scale(1.03);
+            /* More hover effect */
+            box-shadow: 0 4px 15px var(--current-glass-shadow);
+        }
+
+        .list-item p {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 14px;
+            margin-right: 10px;
+            color: var(--current-text-secondary);
+            transition: color 0.3s;
+        }
+
+        .list-item:hover p {
+            color: var(--current-text-color);
+            font-weight: 500;
+        }
+
+        .list-item .actions {
+            display: flex;
+            flex-shrink: 0;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+
+        .list-item:hover .actions {
+            opacity: 1;
+        }
+
+        .list-item .actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            margin-left: 8px;
+            color: var(--current-text-secondary);
+            transition: color 0.2s, transform 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .list-item .actions button:hover {
+            color: var(--primary-color);
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .list-item .actions button .material-icons {
+            font-size: 20px;
+        }
+
+        .list-item .actions .favorite-btn.is-favorite .material-icons {
+            color: var(--favorite-color);
+        }
+
+        .list-item .actions .favorite-btn.is-favorite:hover .material-icons {
+            color: #ffac07;
+            transform: scale(1.2) rotate(-5deg);
+        }
+
+        .list-item .actions button[data-action="edit"]:hover .material-icons {
+            color: #2ecc71;
+        }
+
+        /* Green for edit */
+
+
+        #empty-message {
+            text-align: center;
+            color: var(--current-text-secondary);
+            margin-top: 50px;
+            font-size: 15px;
+            padding: 20px;
+            opacity: 0.7;
+        }
+
+        .player-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.93);
+            /* Start smaller */
+            animation: scaleUp 0.8s 0.4s forwards cubic-bezier(0.25, 0.1, 0.25, 1);
+            /* Slower, bouncier */
+        }
+
+        .player-container {
+            width: 100%;
+            max-width: 1600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .player-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 15px;
+            /* Match container */
+        }
+
+        #player-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--current-text-secondary);
+            height: 100%;
+            text-align: center;
+            padding: 20px;
+            border-radius: 15px;
+            transition: opacity 0.4s;
+        }
+
+        #player-placeholder .material-icons {
+            font-size: 70px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        #player-placeholder p {
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-switch {
+            display: inline-block;
+            height: 24px;
+            position: relative;
+            width: 44px;
+        }
+
+        .theme-switch input {
+            display: none;
+        }
+
+        .slider {
+            background-color: var(--current-glass-bg);
+            border: 1px solid var(--current-glass-border);
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            background-color: #fff;
+            bottom: 3px;
+            content: "";
+            height: 18px;
+            left: 3px;
+            position: absolute;
+            transition: .4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            /* Bouncy switch */
+            width: 18px;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(20px);
+            background-color: #fff;
+        }
+
+        body.dark-mode .slider:before {
+            background-color: var(--text-secondary-dark);
+        }
+
+        body.dark-mode input:checked+.slider:before {
+            background-color: #fff;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            /* Darker overlay */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), visibility 0s 0.4s linear;
+        }
+
+        .modal.show {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), visibility 0s 0s linear;
+        }
+
+        .modal-content {
+            padding: 30px;
+            max-width: 550px;
+            width: 90%;
+            position: relative;
+            transform: scale(0.9) translateY(20px);
+            /* Start slightly down and small */
+            transition: transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            opacity: 0;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal.show .modal-content {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            color: var(--current-text-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+        }
+
+        .modal-content h2 .material-icons {
+            color: var(--primary-color);
+            font-size: 26px;
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 18px;
+            right: 18px;
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: var(--current-text-secondary);
+            transition: color 0.2s, transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        .modal-close-btn:hover {
+            color: var(--danger-color);
+            transform: rotate(180deg) scale(1.1);
+        }
+
+        .modal .form-group {
+            margin-bottom: 20px;
+        }
+
+        .modal label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--current-text-secondary);
+            font-size: 14px;
+        }
+
+        .modal input[type="text"],
+        .modal input[type="url"] {
+            width: 100%;
+            padding: 12px 15px;
+            font-size: 14px;
+            border: 1px solid var(--current-glass-border);
+            border-radius: 8px;
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--current-text-color);
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        body.dark-mode .modal input[type="text"],
+        body.dark-mode .modal input[type="url"] {
+            background-color: rgba(0, 0, 0, 0.15);
+        }
+
+        .modal input[type="text"]:focus,
+        .modal input[type="url"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 170, 255, 0.3);
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        body.dark-mode .modal input[type="text"]:focus,
+        body.dark-mode .modal input[type="url"]:focus {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .modal button[type="submit"],
+        .modal .modal-action-button {
+            /* Generic modal button */
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            transition: all 0.2s ease-out;
+            display: block;
+            width: 100%;
+            text-align: center;
+        }
+
+        .modal button[type="submit"]:hover,
+        .modal .modal-action-button:hover {
+            background-color: var(--primary-hover-color);
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 3px 12px rgba(0, 170, 255, 0.5);
+        }
+
+        /* About Modal Specifics */
+        #aboutModal .about-content p {
+            margin-bottom: 15px;
+            line-height: 1.7;
+            color: var(--current-text-secondary);
+        }
+
+        #aboutModal .about-content strong {
+            color: var(--current-text-color);
+            font-weight: 500;
+        }
+
+        #aboutModal .social-links {
+            margin-top: 25px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        #aboutModal .social-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 28px;
+            /* Larger social icons */
+            transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), color 0.3s;
+        }
+
+        #aboutModal .social-links a:hover {
+            transform: scale(1.2) rotate(10deg);
+            color: var(--primary-hover-color);
+        }
+
+        /* Simple SVG icons for social links (example) */
+        .social-icon {
+            display: inline-block;
+            width: 28px;
+            height: 28px;
+            fill: currentColor;
+        }
+
+
+        @keyframes slideInFromLeft {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes scaleUp {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .header>* {
+            animation: fadeIn 0.6s ease-out forwards;
+            opacity: 0;
+        }
+
+        .header h1 {
+            animation-delay: 0.1s;
+        }
+
+        .url-input-container {
+            animation-delay: 0.25s;
+        }
+
+        .header-controls {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --header-height: auto;
+                --sidebar-width: 100%;
+                --blur-intensity: 6px;
+            }
+
+            .header {
+                padding: 10px 15px;
+                min-height: 60px;
+            }
+
+            .header h1 {
+                font-size: 22px;
+                margin-bottom: 8px;
+            }
+
+            .url-input-container {
+                width: 100%;
+                order: 1;
+                margin-top: 10px;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: space-between;
+                order: 2;
+                margin-top: 12px;
+            }
+
+            .header-button,
+            .url-input-container button {
+                padding: 10px 12px;
+                font-size: 13px;
+            }
+
+            .header-button .material-icons {
+                font-size: 18px;
+            }
+
+            .main-content {
+                flex-direction: column;
+                padding: 10px;
+                gap: 10px;
+                height: calc(100vh - 60px - 20px);
+            }
+
+            .sidebar {
+                width: 100%;
+                max-height: 40vh;
+                padding: 15px;
+                animation: slideInFromTop 0.6s 0.2s forwards cubic-bezier(0.25, 0.1, 0.25, 1);
+                transform: translateY(-25px);
+            }
+
+            @keyframes slideInFromTop {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .player-wrapper {
+                padding: 0;
+            }
+
+            #player-placeholder .material-icons {
+                font-size: 60px;
+            }
+
+            #player-placeholder p {
+                font-size: 16px;
+            }
+
+            .list-item {
+                padding: 12px;
+            }
+
+            .list-item p {
+                font-size: 13px;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 25px;
+            }
+
+            .modal-content h2 {
+                font-size: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 20px;
+            }
+
+            .header h1 .app-icon {
+                font-size: 26px;
+            }
+
+            .list-item p {
+                font-size: 12px;
+            }
+
+            .list-item .actions button .material-icons {
+                font-size: 18px;
+            }
+
+            .sidebar-tabs button {
+                font-size: 13px;
+                padding: 10px 5px;
+            }
+
+            #player-placeholder .material-icons {
+                font-size: 50px;
+            }
+
+            #player-placeholder p {
+                font-size: 14px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .modal-content h2 {
+                font-size: 18px;
+            }
+
+            #aboutModal .social-links a {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header glass-effect">
+        <h1><i class="material-icons app-icon">movie_filter</i> Meheraj</h1>
+
+        <div class="url-input-container">
+            <input type="text" id="iframeUrlInput" placeholder="Paste video embed URL">
+            <button id="loadButton" title="Load Video"><i class="material-icons">input</i> Load</button>
+        </div>
+
+        <div class="header-controls">
+            <button id="aboutButton" class="header-button" title="About Meheraj"><i
+                    class="material-icons">info_outline</i>
+                <span>About</span></button>
+            <button id="clearPlayerButton" class="header-button" title="Clear Player"><i
+                    class="material-icons">clear_all</i> <span>Clear</span></button>
+            <select id="aspectRatioSelect" class="header-button" title="Aspect Ratio">
+                <option value="56.25">16:9</option>
+                <option value="75">4:3</option>
+                <option value="100">1:1</option>
+            </select>
+            <div class="theme-switch-wrapper" title="Toggle Dark Mode">
+                <label class="theme-switch" for="dark-mode-toggle">
+                    <input type="checkbox" id="dark-mode-toggle" />
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <aside class="sidebar glass-effect">
+            <div class="sidebar-tabs">
+                <button id="historyTab" class="tab-button active" title="Show History">History</button>
+                <button id="favoritesTab" class="tab-button" title="Show Favorites">Favorites</button>
+            </div>
+            <div id="historyList" class="sidebar-content active-content"></div>
+            <div id="favoritesList" class="sidebar-content" style="display: none;"></div>
+            <div id="empty-message" style="display: none;">No items here yet.</div>
+        </aside>
+
+        <section class="player-wrapper">
+            <div id="playerContainer" class="player-container glass-effect">
+                <div id="player-placeholder">
+                    <i class="material-icons">ondemand_video</i>
+                    <p>Player is ready. Paste a URL to start.</p>
+                </div>
+                <iframe id="videoIframe" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </section>
+    </main>
+
+    <div id="editFavoriteModal" class="modal">
+        <div class="modal-content glass-effect">
+            <button id="closeEditFavoriteModal" class="modal-close-btn" title="Close"><i
+                    class="material-icons">close</i></button>
+            <h2 id="editFavoriteModalTitle"><i class="material-icons">edit</i> Edit Favorite</h2>
+            <form id="editFavoriteForm">
+                <div class="form-group">
+                    <label for="editFavoriteNameInput">Favorite Name:</label>
+                    <input type="text" id="editFavoriteNameInput" placeholder="Enter a name" required>
+                </div>
+                <div class="form-group">
+                    <label for="editFavoriteUrlInput">Video URL:</label>
+                    <input type="url" id="editFavoriteUrlInput" placeholder="Enter video URL" required>
+                </div>
+                <button type="submit" id="saveFavoriteChangesButton" class="modal-action-button">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="modal">
+        <div class="modal-content glass-effect">
+            <button id="closeAboutModal" class="modal-close-btn" title="Close"><i
+                    class="material-icons">close</i></button>
+            <h2><i class="material-icons">info_outline</i> About Meheraj</h2>
+            <br class="about-content">
+            <br> হ্যালো! আমি <strong>Meheraj</strong></br> আমি একজন সহজ-সরল এবং কৌতূহলী মানুষ, নতুন কিছু
+            জানার ও
+            শিখার প্রতি সবসময় আগ্রহী। জীবনের প্রতিটি মুহূর্তকে উপভোগ করতে ভালোবাসি এবং ইতিবাচক মনোভাব নিয়ে এগিয়ে
+            যেতে চেষ্টা করি। অবসরে গান শোনা, সিনেমা দেখা, আর ইন্টারনেটে ঘুরে বেড়ানো আমার খুব পছন্দের কাজ। আমি
+            বিশ্বাস করি—সততা, ভালোবাসা আর নিজের উপর বিশ্বাসই একজন মানুষকে এগিয়ে নিয়ে যেতে পারে। জীবনটা একটা সফর,
+            আর আমি সেই সফরটা সুন্দরভাবে উপভোগ করার চেষ্টা করছি—প্রতিদিন, প্রতিটি হাসি, প্রতিটি অভিজ্ঞতার মধ্য
+            দিয়ে।
+            </em></p>
+            <div class="social-links">
+                <!-- <a href="https://github.com" target="_blank" title="GitHub" aria-label="GitHub">
+                    <svg class="social-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+                    </svg>
+                </a>
+                <a href="https://linkedin.com" target="_blank" title="LinkedIn" aria-label="LinkedIn">
+                    <svg class="social-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                    </svg>
+                </a>
+                <a href="https://twitter.com" target="_blank" title="Twitter / X" aria-label="Twitter / X">
+                    <svg class="social-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.617l-5.21-6.815-6.037 6.815h-3.308l7.731-8.735-7.731-10.76h6.617l4.685 6.355zm-.297 18.255h1.64l-10.061-13.695h-1.726z" />
+                    </svg>
+                </a> -->
+
+                <a href="https://t.me/mraj_43" target="_blank" title="Telegram" aria-label="Telegram">
+                    <svg class="social-icon" viewBox="0 0 24 24">
+                        <path
+                            d="M12 0C5.372 0 0 5.372 0 12c0 6.627 5.372 12 12 12s12-5.373 12-12C24 5.372 18.628 0 12 0zm5.412 8.389l-1.57 7.388c-.119.535-.433.664-.878.414l-2.43-1.796-1.171 1.13c-.129.129-.237.237-.486.237l.173-2.458 4.473-4.043c.195-.173-.043-.27-.302-.098l-5.524 3.478-2.381-.744c-.517-.161-.527-.517.108-.764l9.294-3.585c.432-.161.81.098.673.754z" />
+                    </svg>
+                </a>
+
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM ELEMENT SELECTION ---
+            const urlInput = document.getElementById('iframeUrlInput');
+            const loadButton = document.getElementById('loadButton');
+            const videoIframe = document.getElementById('videoIframe');
+            const playerContainer = document.getElementById('playerContainer');
+            const playerPlaceholder = document.getElementById('player-placeholder');
+            const clearPlayerButton = document.getElementById('clearPlayerButton');
+            const aspectRatioSelect = document.getElementById('aspectRatioSelect');
+            const darkModeToggle = document.getElementById('dark-mode-toggle');
+
+            const historyTab = document.getElementById('historyTab');
+            const favoritesTab = document.getElementById('favoritesTab');
+            const historyList = document.getElementById('historyList');
+            const favoritesList = document.getElementById('favoritesList');
+            const emptyMessage = document.getElementById('empty-message');
+
+            // Edit Favorite Modal Elements
+            const editFavoriteModal = document.getElementById('editFavoriteModal');
+            const closeEditFavoriteModalButton = document.getElementById('closeEditFavoriteModal');
+            const editFavoriteModalTitle = document.getElementById('editFavoriteModalTitle');
+            const editFavoriteForm = document.getElementById('editFavoriteForm');
+            const editFavoriteNameInput = document.getElementById('editFavoriteNameInput');
+            const editFavoriteUrlInput = document.getElementById('editFavoriteUrlInput');
+            // Save button is part of the form, handled by submit
+
+            // About Modal Elements
+            const aboutButton = document.getElementById('aboutButton');
+            const aboutModal = document.getElementById('aboutModal');
+            const closeAboutModalButton = document.getElementById('closeAboutModal');
+
+            let currentUrlToFavorite = null;
+            let editingFavoriteUrl = null; // Store the original URL of the favorite being edited
+
+            // --- STATE MANAGEMENT ---
+            let history = [];
+            let favorites = []; // { name: "Custom Name", url: "video_url", id: "unique_id" }
+            let currentTab = 'history';
+
+            // --- LOCALSTORAGE KEYS ---
+            const HISTORY_KEY = 'videoHistoryMeheraj_v2'; // Increment version for structure changes
+            const FAVORITES_KEY = 'videoFavoritesMeheraj_v2';
+            const DARK_MODE_KEY = 'darkModeMeheraj';
+
+
+            // --- INITIALIZATION ---
+            const init = () => {
+                loadFromLocalStorage();
+                setAspectRatio();
+                renderLists();
+
+                const lastPlayed = history.length > 0 ? history[0] : null;
+                if (lastPlayed) {
+                    loadVideo(lastPlayed, false);
+                } else {
+                    clearPlayer();
+                }
+
+                if (localStorage.getItem(DARK_MODE_KEY) === 'enabled') {
+                    document.body.classList.add('dark-mode');
+                    darkModeToggle.checked = true;
+                }
+                updateEmptyMessage();
+            };
+
+            // --- CORE FUNCTIONS ---
+            const generateUniqueId = () =>
+                `Meheraj-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+
+            const loadVideo = (url, addToHistory = true) => {
+                const trimmedUrl = url.trim();
+                if (!trimmedUrl) {
+                    showNotification('Please enter a valid URL.', 'error');
+                    return;
+                }
+                playerPlaceholder.style.display = 'none';
+                videoIframe.style.display = 'block';
+                videoIframe.src = trimmedUrl;
+
+                if (addToHistory) {
+                    history = history.filter(item => item !== trimmedUrl);
+                    history.unshift(trimmedUrl);
+                    if (history.length > 50) history.pop();
+
+                    saveToLocalStorage();
+                    if (currentTab === 'history') renderListContent(historyList, history, 'history');
+                }
+                updateEmptyMessage();
+            };
+
+            const clearPlayer = () => {
+                videoIframe.src = 'about:blank';
+                videoIframe.style.display = 'none';
+                playerPlaceholder.style.display = 'flex';
+                updateEmptyMessage();
+            }
+
+            const setAspectRatio = () => {
+                const ratio = aspectRatioSelect.value;
+                playerContainer.style.paddingTop = `${ratio}%`;
+            };
+
+            // --- LIST RENDERING ---
+            const renderLists = () => {
+                renderListContent(historyList, history, 'history');
+                renderListContent(favoritesList, favorites, 'favorites');
+                updateEmptyMessage();
+            };
+
+            const renderListContent = (listElement, items, type) => {
+                listElement.innerHTML = '';
+                if (items.length > 0) {
+                    items.forEach((itemData, index) => {
+                        const listItem = createListItem(itemData, type);
+                        listItem.style.opacity = '0';
+                        listItem.style.transform = 'translateY(10px)';
+                        listElement.appendChild(listItem);
+                        setTimeout(() => {
+                            listItem.style.opacity = '1';
+                            listItem.style.transform = 'translateY(0)';
+                        }, index * 50 + (Math.random() * 50)); // Slightly randomized stagger
+                    });
+                }
+            };
+
+            const createListItem = (itemData, type) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+
+                let displayUrl, displayName, itemId;
+                if (type === 'favorites') {
+                    displayName = itemData.name;
+                    displayUrl = itemData.url;
+                    itemId = itemData.id;
+                    item.dataset.id = itemId; // Store unique ID for favorites
+                } else {
+                    displayName = itemData;
+                    displayUrl = itemData;
+                    item.dataset.url = displayUrl; // History uses URL as identifier for fav check
+                }
+
+                const isFav = favorites.some(fav => fav.url === displayUrl);
+
+                let actionsHtml = `
+                <button class="favorite-btn ${isFav ? 'is-favorite' : ''}" data-action="favorite" title="${isFav ? 'Remove from Favorites' : 'Add to Favorites'}">
+                    <i class="material-icons">${isFav ? 'star' : 'star_border'}</i>
+                </button>`;
+
+                if (type === 'favorites') {
+                    actionsHtml += `
+                    <button data-action="edit" title="Edit Favorite">
+                        <i class="material-icons">edit</i>
+                    </button>`;
+                }
+                actionsHtml += `
+                <button data-action="delete" title="Remove from ${type === 'history' ? 'History' : 'Favorites'}">
+                    <i class="material-icons">delete_outline</i>
+                </button>`;
+
+                item.innerHTML = `
+                <p title="${displayUrl}">${displayName}</p>
+                <div class="actions">${actionsHtml}</div>`;
+
+                item.querySelector('p').addEventListener('click', () => loadVideo(displayUrl, true));
+
+                item.querySelector('[data-action="favorite"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleFavorite(displayUrl);
+                });
+
+                if (type === 'favorites') {
+                    item.querySelector('[data-action="edit"]').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        openEditFavoriteModal(itemId);
+                    });
+                }
+
+                item.querySelector('[data-action="delete"]').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (type === 'history') deleteFromHistory(displayUrl);
+                    if (type === 'favorites') deleteFromFavorites(itemId);
+                });
+
+                return item;
+            };
+
+            const updateEmptyMessage = () => {
+                const isActiveTabEmpty = (currentTab === 'history' && history.length === 0) || (
+                    currentTab === 'favorites' && favorites.length === 0);
+                emptyMessage.style.display = isActiveTabEmpty ? 'block' : 'none';
+            };
+
+            // --- FAVORITE MANAGEMENT ---
+            const openEditFavoriteModal = (itemId = null) => { // itemId is null for new, present for edit
+                if (itemId) { // Editing existing favorite
+                    const fav = favorites.find(f => f.id === itemId);
+                    if (!fav) return;
+                    editFavoriteModalTitle.innerHTML = '<i class="material-icons">edit</i> Edit Favorite';
+                    editFavoriteNameInput.value = fav.name;
+                    editFavoriteUrlInput.value = fav.url;
+                    editingFavoriteUrl = fav.url; // Store original URL for potential history update
+                    currentUrlToFavorite = null; // Not adding new
+                    editFavoriteForm.dataset.editingId = itemId;
+                } else { // Adding new favorite
+                    editFavoriteModalTitle.innerHTML =
+                        '<i class="material-icons">star_border</i> Add New Favorite';
+                    editFavoriteNameInput.value = '';
+                    editFavoriteUrlInput.value = currentUrlToFavorite || '';
+                    editFavoriteNameInput.placeholder =
+                        `Name for: ${(currentUrlToFavorite || '').substring(0, 30)}...`;
+                    editingFavoriteUrl = null;
+                    editFavoriteForm.dataset.editingId = ''; // Clear editing ID
+                }
+                editFavoriteModal.classList.add('show');
+                editFavoriteNameInput.focus();
+            };
+
+            const closeEditFavoriteModal = () => {
+                editFavoriteModal.classList.remove('show');
+                currentUrlToFavorite = null;
+                editingFavoriteUrl = null;
+                editFavoriteForm.dataset.editingId = '';
+                editFavoriteForm.reset(); // Clear form fields
+            };
+
+            editFavoriteForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = editFavoriteNameInput.value.trim();
+                const url = editFavoriteUrlInput.value.trim();
+                const editingId = editFavoriteForm.dataset.editingId;
+
+                if (!name || !url) {
+                    showNotification("Name and URL are required.", "error");
+                    return;
+                }
+
+                if (editingId) { // Updating existing favorite
+                    const favIndex = favorites.findIndex(f => f.id === editingId);
+                    if (favIndex > -1) {
+                        favorites[favIndex] = {
+                            ...favorites[favIndex],
+                            name,
+                            url
+                        };
+                    }
+                } else { // Adding new favorite
+                    if (!favorites.some(fav => fav.url === url)) { // Avoid duplicate URLs if adding new
+                        favorites.unshift({
+                            id: generateUniqueId(),
+                            name,
+                            url
+                        });
+                    } else {
+                        showNotification("This URL is already in your favorites.", "info");
+                    }
+                }
+                saveToLocalStorage();
+                renderLists();
+                closeEditFavoriteModal();
+            });
+
+
+            const toggleFavorite = (url) => {
+                const favoriteIndex = favorites.findIndex(fav => fav.url === url);
+                if (favoriteIndex > -1) {
+                    deleteFromFavorites(favorites[favoriteIndex].id); // Remove by ID
+                } else {
+                    currentUrlToFavorite = url; // Store URL for adding new
+                    openEditFavoriteModal(); // Open modal for new favorite
+                }
+            };
+
+            const deleteFromHistory = (url) => {
+                history = history.filter(item => item !== url);
+                saveToLocalStorage();
+                if (currentTab === 'history') renderListContent(historyList, history, 'history');
+                renderListContent(favoritesList, favorites, 'favorites'); // Update stars in favorites
+                updateEmptyMessage();
+            };
+
+            const deleteFromFavorites = (itemId) => {
+                favorites = favorites.filter(fav => fav.id !== itemId);
+                saveToLocalStorage();
+                renderListContent(favoritesList, favorites, 'favorites');
+                renderListContent(historyList, history, 'history'); // Update stars in history
+                updateEmptyMessage();
+            };
+
+            // --- TAB SWITCHING ---
+            const switchTab = (tabName) => {
+                currentTab = tabName;
+                historyTab.classList.toggle('active', tabName === 'history');
+                favoritesTab.classList.toggle('active', tabName === 'favorites');
+                historyList.style.display = tabName === 'history' ? 'block' : 'none';
+                favoritesList.style.display = tabName === 'favorites' ? 'block' : 'none';
+                updateEmptyMessage();
+            };
+
+            // --- LOCAL STORAGE ---
+            const saveToLocalStorage = () => {
+                localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+                localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+            };
+
+            const loadFromLocalStorage = () => {
+                const savedHistory = JSON.parse(localStorage.getItem(HISTORY_KEY));
+                const savedFavorites = JSON.parse(localStorage.getItem(FAVORITES_KEY));
+                if (savedHistory) history = savedHistory;
+                if (savedFavorites) {
+                    favorites = savedFavorites.map(fav => {
+                        // Ensure all favorites have an ID (for migration from older structures)
+                        if (typeof fav === 'string') { // Very old format (just URL)
+                            return {
+                                id: generateUniqueId(),
+                                name: fav.substring(0, 30) + '...',
+                                url: fav
+                            };
+                        }
+                        if (!fav.id) { // Old format without ID but with name/url
+                            return {
+                                ...fav,
+                                id: generateUniqueId()
+                            };
+                        }
+                        return fav;
+                    });
+                } else {
+                    favorites = [];
+                }
+            };
+
+            // --- NOTIFICATION FUNCTION ---
+            const showNotification = (message, type = 'info') => {
+                // This is a placeholder. A more robust app would use a styled toast/snackbar.
+                console.log(`Notification (${type}): ${message}`);
+                if (type === 'error') {
+                    alert(message); // Simple alert for errors
+                }
+            };
+
+            // --- ABOUT MODAL ---
+            const openAboutModal = () => aboutModal.classList.add('show');
+            const closeAboutModal = () => aboutModal.classList.remove('show');
+
+            // --- EVENT LISTENERS ---
+            loadButton.addEventListener('click', () => loadVideo(urlInput.value, true));
+            urlInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    loadVideo(urlInput.value, true);
+                }
+            });
+            clearPlayerButton.addEventListener('click', clearPlayer);
+            aspectRatioSelect.addEventListener('change', setAspectRatio);
+            historyTab.addEventListener('click', () => switchTab('history'));
+            favoritesTab.addEventListener('click', () => switchTab('favorites'));
+            darkModeToggle.addEventListener('change', () => {
+                document.body.classList.toggle('dark-mode');
+                localStorage.setItem(DARK_MODE_KEY, document.body.classList.contains('dark-mode') ?
+                    'enabled' : 'disabled');
+            });
+
+            // Edit Favorite Modal Listeners
+            closeEditFavoriteModalButton.addEventListener('click', closeEditFavoriteModal);
+            editFavoriteModal.addEventListener('click', (event) => {
+                if (event.target === editFavoriteModal) closeEditFavoriteModal();
+            });
+
+            // About Modal Listeners
+            aboutButton.addEventListener('click', openAboutModal);
+            closeAboutModalButton.addEventListener('click', closeAboutModal);
+            aboutModal.addEventListener('click', (event) => {
+                if (event.target === aboutModal) closeAboutModal();
+            });
+
+            // --- START THE APP ---
+            init();
+        });
+    </script>
+</body>
+
+</html>
